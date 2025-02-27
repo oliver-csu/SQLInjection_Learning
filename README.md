@@ -1,14 +1,18 @@
 # SQLInjection_Learning
 
-## 基础入门
+## SQL注入概述
 
 ![SQL注入](./assets/20250210/e8a96de565584fa2b9cf5d45154ad4f3.png)
 
-SQL注入即是指[web应用程序](https://baike.baidu.com/item/web%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F/2498090)对用户输入数据的合法性没有判断或过滤不严，攻击者可以在web应用程序中事先定义好的查询语句的结尾上添加额外的[SQL语句](https://baike.baidu.com/item/SQL%E8%AF%AD%E5%8F%A5/5714895)，在管理员不知情的情况下实现非法操作，以此来实现欺骗[数据库服务器](https://baike.baidu.com/item/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9C%8D%E5%8A%A1%E5%99%A8/613818)执行非授权的任意查询，从而进一步得到相应的数据信息。
+SQL注入即是指[Web应用程序](https://baike.baidu.com/item/web%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F/2498090)对用户输入数据的合法性没有判断或过滤不严，攻击者可以在web应用程序中事先定义好的查询语句的结尾上添加额外的[SQL语句](https://baike.baidu.com/item/SQL%E8%AF%AD%E5%8F%A5/5714895)，在管理员不知情的情况下实现非法操作，以此来实现欺骗[数据库服务器](https://baike.baidu.com/item/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9C%8D%E5%8A%A1%E5%99%A8/613818)执行非授权的任意查询，从而进一步得到相应的数据信息。
 
-### WEB应用程序三层架构：视图层 + 业务逻辑层  + 数据访问层
+### Web应用程序三层架构
 
-![三层架构](./assets/20250210/fded23e5be0f4b3f803ebc5904aa7e34.png)
+* 视图层
+* 业务逻辑层
+* 数据访问层
+
+![Web三层架构](./assets/20250210/fded23e5be0f4b3f803ebc5904aa7e34.png)
 
 ## SQL注入之数据库概述
 
@@ -16,33 +20,85 @@ SQL注入即是指[web应用程序](https://baike.baidu.com/item/web%E5%BA%94%E7
 
 ### 关系型数据库
 
-关系型数据库，存储的格式可以直观地反映实体间的关系，和常见的表格比较相似
+关系型数据库，存储的格式可以直观地反映实体间的关系，和常见的表格比较相似；
 
-关系型数据库中表与表之间有很多复杂的关联关系的
+关系型数据库中表与表之间有很多复杂的关联关系的；
 
-常见的关系型数据库有MySQL，Orcale，PostgreSQL , SQL Server等。
+常见的关系型数据库有MySQL, Orcale, PostgreSQL, SQL Server等。
 
 ### 非关系型数据库
 
-随着近些年技术方向的不断扩展，大量的NoSQL数据库如 Mon goDB，Redis出于简化数据库结构，避免冗余，影响性能的表连接。摒弃复杂分布式的目的被设计
+随着近些年技术方向的不断扩展，大量的NoSQL数据库如MongoDB，Redis出于简化数据库结构，避免冗余，影响性能的表连接，摒弃复杂分布式的目的被设计。
 
-NoSQL数据库适合追求速度和可扩展性，业务多变的场景
+NoSQL数据库适合追求速度和可扩展性，业务多变的场景。
 
-[数据库排行：https://db-engines.com/en/ranking](https://db-engines.com/en/ranking)
+[数据库排行榜](https://db-engines.com/en/ranking)
 
-![数据库](./assets/20250210/a7d309ee95974d18be0e477687de55bd.png)
+![数据库排行](./assets/20250210/a7d309ee95974d18be0e477687de55bd.png)
 
-### **数据库服务器层级关系：**
+## SQL注入之MySQL数据库
 
-服务器里面
-：多个数据库
-：多个数据表
-：多个行 列  字段
-： 数据
+数据库就是一个存储数据的仓库，数据库是以一定方式存储在一起，能与多个用户共享，具有尽可能小的冗余，与应用程序彼此独立的数据集合。
+
+关系型数据库，存储的格式可以直观地反映实体间的关系，和常见的Excel表格比较相似。
+
+### 数据库服务器层级关系
+
+* 多个数据库
+* 多个数据表
+* 多个行、列、字段
+* 多条数据
 
 ![MySQL结构](./assets/20250210/1e7826290bad4acfb472ad3fde06e0b1.png)
 
-### SQL语句语法回顾：
+### MySQL系统库
+
+提供了访问数据库元数据的方式。
+
+元数据是关于数据库的数据，如数据库名和表名，列的数据类型或访问权限。
+
+![MySQL元数据](./assets/20250210/8ede64abc9f346ebae1866f748cf6ab1.png)
+
+#### information_schema
+
+信息数据库，保存着关于MySQL服务器所维护的所有其他数据库的信息；
+
+例如：数据库或表的名称，列的数据类型或访问权限。有时用于此信息的其他术语是数据字典和系统目录。在Web渗透过程中用途很大。
+
+```
+SCHEMATA 表：提供了当前MySQL实例中所有数据库信息，show databases结果来自此表。
+
+TABLES表：提供了关于数据中表的信息。table_name是关键字段。
+
+COLUMNS表：提供了表的列信息，详细描述了某张表的所有列以及每个列的信息。column_name是关键字段。
+```
+
+![information_schema库](./assets/20250227/49fb21ecd62a40acb2681f57f477fa3c.png)
+
+#### performance_schema
+
+
+MySQL 5.5开始新增一个数据库：PERFORMANCE_SCHEMA，具有87张表，主要用于收集数据库服务器性能参数。
+
+内存数据库，数据放在内存中直接操作的数据库。
+
+相对于磁盘，内存的数据读写速度要高出几个数量级。
+
+#### mysql
+
+是核心数据库，类似于sql server中的master表，主要负责存储数据库的用户（账户）信息、权限设置、关键字等mysql自己需要使用的控制和管理信息。
+
+不可以删除，如果对mysql不是很了解，也不要轻易修改这个数据库里面的表信息。
+
+常用举例：在mysql.user表中存储着用户的密码。
+
+#### sys
+
+是MySQL5.7增加的系统数据库，这个库是通过视图的形式把information_schema和performance_schema结合起来，查询出更加令人容易理解的数据，具有1个表，100个视图。
+
+这个库可以查询谁使用了最多的资源，哪张表访问最多等。
+
+## MySQL语句语法回顾
 
 ```
 查询当前数据库服务器所有的数据库
@@ -52,19 +108,18 @@ use 数据库名字 test
 查询当前数据库所有的表
 show tables；
 查询t1表所有数据
-查询关键 select 
+查询关键字 select 
 * 所有
 from  表名
 select * from t1;
 条件查询 id=2
 where 条件  编程 if（条件 true）{执行}
-
 select * from t1 where id=2；
 查询id=2   pass =111
 union 合并查询 
 2个特性：
-前面查询的语句 和 后面的查询语句 结果互不干扰！
-前面的查询语句的字段数量 和 后面的查询语句字段数量  要一致
+前面查询的语句和后面的查询语句结果互不干扰
+前面的查询语句的字段数量和后面的查询语句字段数量要一致
 
 * == 3
 select id from t1 where id=-1 union select * from t1 where pass =111;
@@ -74,38 +129,6 @@ order by 字段名字  id  也可以 跟上数字 1 2 3 4 .。。。。。
 
 猜解表的列数 知道表有几列  
 ```
-
-### 一.系统库释义
-
-提供了访问数据库元数据的方式
-
-元数据是关于数据库的数据，如数据库名和表名，列的数据类型或访问权限。
-
-![元数据](./assets/20250210/8ede64abc9f346ebae1866f748cf6ab1.png)
-
-1.**information_schema 库**：是信息数据库，其中保存着关于MySQL服务器所维护的所有其他数据库的信息；
-
-例如数据库或表的名称，列的数据类型或访问权限。有时用于此信息的其他术语是数据字典和系统目录。web渗透过程中用途很大。
-
-```
-	SCHEMATA 表：提供了当前MySQL实例中所有数据库信息， show databases结果取之此表。
-
-	TABLES表：提供了关于数据中表的信息。table_name
-
-	COLUMNS表：提供了表的列信息，详细描述了某张表的所有列以及每个列的信息。column_name
-```
-
-![information_schema](./assets/20250210/5c877a87fea04c3385cf5218458d9bbe.png)
-
-2、**performance_schema库**具有87张表。
-MySQL 5.5开始新增一个数据库：PERFORMANCE_SCHEMA，主要用于收集数据库服务器性能参数。内存数据库，数据放在内存中直接操作的数据库。相对于磁盘，内存的数据读写速度要高出几个数量级。
-
-3、**mysql库**是核心数据库，类似于sql server中的master表，主要负责存储数据库的用户（账户）信息、权限设置、关键字等mysql自己需要使用的控制和管理信息。不可以删除，如果对mysql不是很了解，也不要轻易修改这个数据库里面的表信息。
-常用举例：在mysql.user表中修改root用户的密码
-
-4、**sys库**具有1个表，100个视图。
-sys库是MySQL 5.7增加的系统数据库，这个库是通过视图的形式把information_schema和performance_schema结合起来，查询出更加令人容易理解的数据。
-可以查询谁使用了最多的资源，哪张表访问最多等。
 
 ## MySQL手工注入
 
